@@ -276,7 +276,7 @@
   </div>
 
   <script>
-       key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
+       const GOOGLE_API_KEY = "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
 
     const DISTANCE_BRACKETS = [
       { min: 1, max: 50, fixedValue: 16.25 },
@@ -373,7 +373,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc"; ,
+          "X-Goog-Api-Key": const GOOGLE_API_KEY = "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
           "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
         },
         body: JSON.stringify({
@@ -414,7 +414,7 @@
         return;
       }
 
-      if (key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc"; {
+      if (const GOOGLE_API_KEY) = "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc"; {
         mostrarMensagem("A chave da API do Google ainda não foi colocada no código.", "erro");
         return;
       }

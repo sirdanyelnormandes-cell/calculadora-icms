@@ -6,12 +6,14 @@
   <title>Calculadora ICMS / GNRE de Frete</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f4f6f8;
       color: #1f2937;
     }
+
     .container {
       max-width: 1100px;
       margin: 30px auto;
@@ -20,13 +22,16 @@
       grid-template-columns: 2fr 1fr;
       gap: 20px;
     }
+
     .card {
       background: #fff;
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
+
     h1, h2, h3, p { margin-top: 0; }
+
     .alert {
       background: #eef6ff;
       border: 1px solid #cfe4ff;
@@ -34,21 +39,26 @@
       border-radius: 12px;
       margin-bottom: 18px;
       font-size: 14px;
+      line-height: 1.5;
     }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
+
     .field {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     label {
       font-size: 14px;
       font-weight: 700;
     }
+
     input, select {
       width: 100%;
       padding: 12px;
@@ -56,16 +66,23 @@
       border-radius: 10px;
       font-size: 15px;
     }
+
     input:focus, select:focus {
       outline: none;
       border-color: #2563eb;
     }
+
+    input[readonly] {
+      background: #f9fafb;
+    }
+
     .buttons {
       margin-top: 18px;
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
+
     button {
       border: none;
       border-radius: 12px;
@@ -74,15 +91,18 @@
       font-size: 15px;
       font-weight: 700;
     }
+
     .primary {
       background: #111827;
       color: #fff;
     }
+
     .secondary {
       background: #fff;
       color: #111827;
       border: 1px solid #d1d5db;
     }
+
     .error {
       margin-top: 14px;
       background: #fef2f2;
@@ -91,6 +111,7 @@
       padding: 12px;
       border-radius: 12px;
     }
+
     .success {
       margin-top: 14px;
       background: #ecfdf5;
@@ -99,6 +120,7 @@
       padding: 12px;
       border-radius: 12px;
     }
+
     .result-row {
       display: flex;
       justify-content: space-between;
@@ -107,6 +129,7 @@
       border-bottom: 1px solid #e5e7eb;
       font-size: 15px;
     }
+
     .memory {
       background: #f3f4f6;
       padding: 14px;
@@ -114,6 +137,7 @@
       margin-top: 16px;
       font-size: 14px;
     }
+
     .total {
       background: #111827;
       color: #fff;
@@ -121,19 +145,30 @@
       border-radius: 14px;
       margin-top: 16px;
     }
+
     .total small {
       color: #cbd5e1;
       display: block;
       margin-bottom: 6px;
       text-transform: uppercase;
     }
+
     .total strong {
       font-size: 32px;
     }
+
+    .small-note {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
     @media (max-width: 900px) {
       .container {
         grid-template-columns: 1fr;
       }
+
       .grid {
         grid-template-columns: 1fr;
       }
@@ -145,20 +180,18 @@
     <div class="card">
       <h1>Calculadora de ICMS / GNRE de Frete</h1>
 
-      <div class="alert">
-        Esta versão é própria para GitHub Pages. Usa a tabela de <strong>carga refrigerada</strong>.
-        <strong>CNPJ = 12%</strong> e <strong>CPF = 17,5%</strong>.
+        <strong>CNPJ = 12%</strong> e <strong>CPF = 17,5%</strong>.<br>
       </div>
 
       <div class="grid">
         <div class="field">
           <label for="origem">Origem</label>
-          <input id="origem" type="text" value="Porto Velho" />
+          <input id="origem" type="text" value="Porto Velho" placeholder="Ex.: Porto Velho - RO" />
         </div>
 
         <div class="field">
           <label for="destino">Destino</label>
-          <input id="destino" type="text" value="Ariquemes" />
+          <input id="destino" type="text" value="Ariquemes" placeholder="Ex.: Ariquemes - RO" />
         </div>
 
         <div class="field">
@@ -171,12 +204,12 @@
 
         <div class="field">
           <label for="peso">Peso (toneladas)</label>
-          <input id="peso" type="number" step="0.01" value="1" />
+          <input id="peso" type="number" step="0.01" value="1" placeholder="Ex.: 1" />
         </div>
 
         <div class="field">
           <label for="diesel">Valor do diesel</label>
-          <input id="diesel" type="number" step="0.01" value="6.50" />
+          <input id="diesel" type="number" step="0.01" value="6.50" placeholder="Ex.: 6.50" />
         </div>
 
         <div class="field">
@@ -186,7 +219,14 @@
 
         <div class="field">
           <label for="km">Distância (km)</label>
-          <input id="km" type="number" step="1" value="201" />
+          <input id="km" type="number" step="1" readonly />
+          <div class="small-note">Preenchido automaticamente pelo Google.</div>
+        </div>
+
+        <div class="field">
+          <label for="googleApiKey">Google API Key</label>
+          <input id="googleApiKey" type="password" placeholder="Cole aqui sua chave do Google" />
+          <div class="small-note">A chave precisa ter a Routes API ativada.</div>
         </div>
       </div>
 
@@ -335,45 +375,93 @@
       box.innerHTML = texto;
     }
 
-    function calcular() {
-      const km = parseFloat(document.getElementById("km").value);
+    async function buscarDistanciaGoogle(origem, destino, apiKey) {
+      const resposta = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
+        },
+        body: JSON.stringify({
+          origin: { address: origem },
+          destination: { address: destino },
+          travelMode: "DRIVE",
+          routingPreference: "TRAFFIC_UNAWARE",
+          languageCode: "pt-BR",
+          units: "METRIC"
+        })
+      });
+
+      if (!resposta.ok) {
+        const erro = await resposta.text();
+        throw new Error(erro || "Erro ao consultar Google Maps");
+      }
+
+      const dados = await resposta.json();
+      const metros = dados?.routes?.[0]?.distanceMeters;
+
+      if (!metros) {
+        throw new Error("Não foi possível encontrar rota");
+      }
+
+      return Math.round(metros / 1000);
+    }
+
+    async function calcular() {
+      const origem = document.getElementById("origem").value.trim();
+      const destino = document.getElementById("destino").value.trim();
       const peso = parseFloat(document.getElementById("peso").value);
       const diesel = parseFloat(document.getElementById("diesel").value);
       const tipo = document.getElementById("tipoPessoa").value;
+      const apiKey = document.getElementById("googleApiKey").value.trim();
       const aliquota = tipo === "cpf" ? 0.175 : 0.12;
 
-      if (!km || !peso || !diesel) {
-        mostrarMensagem("Preencha km, peso e diesel.", "erro");
+      if (!origem || !destino || !peso || !diesel) {
+        mostrarMensagem("Preencha origem, destino, peso e diesel.", "erro");
         return;
       }
 
-      const bracket = getBracket(km);
-
-      if (!bracket) {
-        mostrarMensagem("KM fora da tabela.", "erro");
+      if (!apiKey) {
+        mostrarMensagem("Preencha a Google API Key.", "erro");
         return;
       }
 
-      const base = bracket.fixedValue * peso * diesel;
-      const imposto = base * aliquota;
+      try {
+        mostrarMensagem("Consultando distância no Google...", "sucesso");
 
-      document.getElementById("rDistancia").textContent = km + " km";
-      document.getElementById("rFaixa").textContent = bracket.min + " a " + bracket.max + " km";
-      document.getElementById("rTipo").textContent = tipo === "cpf" ? "CPF" : "CNPJ";
-      document.getElementById("rAliquota").textContent = tipo === "cpf" ? "17,5%" : "12%";
-      document.getElementById("rValorFaixa").textContent = money(bracket.fixedValue);
-      document.getElementById("rBase").textContent = money(base);
-      document.getElementById("rMemoria").textContent =
-        bracket.fixedValue + " × " + peso + " × " + diesel + " × " + (aliquota * 100).toFixed(1) + "%";
-      document.getElementById("rImposto").textContent = money(imposto);
+        const km = await buscarDistanciaGoogle(origem, destino, apiKey);
+        document.getElementById("km").value = km;
 
-      mostrarMensagem("Cálculo realizado com sucesso.", "sucesso");
+        const bracket = getBracket(km);
+
+        if (!bracket) {
+          mostrarMensagem("KM fora da tabela.", "erro");
+          return;
+        }
+
+        const base = bracket.fixedValue * peso * diesel;
+        const imposto = base * aliquota;
+
+        document.getElementById("rDistancia").textContent = km + " km";
+        document.getElementById("rFaixa").textContent = bracket.min + " a " + bracket.max + " km";
+        document.getElementById("rTipo").textContent = tipo === "cpf" ? "CPF" : "CNPJ";
+        document.getElementById("rAliquota").textContent = tipo === "cpf" ? "17,5%" : "12%";
+        document.getElementById("rValorFaixa").textContent = money(bracket.fixedValue);
+        document.getElementById("rBase").textContent = money(base);
+        document.getElementById("rMemoria").textContent =
+          bracket.fixedValue + " × " + peso + " × " + diesel + " × " + (aliquota * 100).toFixed(1) + "%";
+        document.getElementById("rImposto").textContent = money(imposto);
+
+        mostrarMensagem("Cálculo realizado com sucesso.", "sucesso");
+      } catch (e) {
+        mostrarMensagem("Erro ao buscar distância: " + e.message, "erro");
+      }
     }
 
     async function copiarResumo() {
       const texto = [
         "Calculadora ICMS / GNRE de Frete",
-        "Tabela usada: carga refrigerada",
         "Distância: " + document.getElementById("rDistancia").textContent,
         "Faixa: " + document.getElementById("rFaixa").textContent,
         "Tipo: " + document.getElementById("rTipo").textContent,
@@ -389,7 +477,6 @@
 
     document.getElementById("tipoPessoa").addEventListener("change", atualizarAliquota);
     atualizarAliquota();
-    calcular();
   </script>
 </body>
 </html>

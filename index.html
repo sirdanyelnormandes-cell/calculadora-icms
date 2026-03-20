@@ -178,7 +178,7 @@
 <body>
   <div class="container">
     <div class="card">
-      <h1>Calculadora de ICMS / GNRE de Frete</h1>
+      <h1>Calculadora de ICMS de Frete</h1>
 
       <div class="grid">
         <div class="field">
@@ -188,7 +188,7 @@
 
         <div class="field">
           <label for="destino">Destino</label>
-          <input id="destino" type="text" value="Ariquemes - RO" placeholder="Ex.: Ariquemes - RO" />
+          <input id="destino" type="text" value="Cuiaba - MT" placeholder="Ex.: Cuiaba - MT" />
         </div>
 
         <div class="field">
@@ -276,8 +276,7 @@
   </div>
 
   <script>
-    // COLE SUA CHAVE AQUI
-    const GOOGLE_API_KEY = "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
+       key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
 
     const DISTANCE_BRACKETS = [
       { min: 1, max: 50, fixedValue: 16.25 },
@@ -374,7 +373,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_API_KEY,
+          "X-Goog-Api-Key": key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc"; ,
           "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
         },
         body: JSON.stringify({
@@ -415,7 +414,7 @@
         return;
       }
 
-      if (!GOOGLE_API_KEY || GOOGLE_API_KEY === "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc") {
+      if (key=API_KEY "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc"; {
         mostrarMensagem("A chave da API do Google ainda não foi colocada no código.", "erro");
         return;
       }

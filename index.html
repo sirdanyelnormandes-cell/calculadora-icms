@@ -1,0 +1,393 @@
+import React, { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Calculator, MapPin, Fuel, Weight, Percent, Copy, KeyRound } from "lucide-react";
+
+const DISTANCE_BRACKETS = [
+  { min: 1, max: 50, fixedValue: 16.25 },
+  { min: 51, max: 100, fixedValue: 17.88 },
+  { min: 101, max: 150, fixedValue: 20.26 },
+  { min: 151, max: 200, fixedValue: 22.13 },
+  { min: 201, max: 250, fixedValue: 23.77 },
+  { min: 251, max: 300, fixedValue: 26.05 },
+  { min: 301, max: 350, fixedValue: 28.39 },
+  { min: 351, max: 400, fixedValue: 30.22 },
+  { min: 401, max: 450, fixedValue: 31.59 },
+  { min: 451, max: 500, fixedValue: 32.56 },
+  { min: 501, max: 550, fixedValue: 33.19 },
+  { min: 551, max: 600, fixedValue: 33.53 },
+  { min: 601, max: 650, fixedValue: 33.61 },
+  { min: 651, max: 700, fixedValue: 36.3 },
+  { min: 701, max: 750, fixedValue: 38.84 },
+  { min: 751, max: 800, fixedValue: 41.57 },
+  { min: 801, max: 850, fixedValue: 44.47 },
+  { min: 851, max: 900, fixedValue: 47.59 },
+  { min: 901, max: 950, fixedValue: 50.92 },
+  { min: 951, max: 1000, fixedValue: 53.98 },
+  { min: 1001, max: 1100, fixedValue: 57.22 },
+  { min: 1101, max: 1200, fixedValue: 60.65 },
+  { min: 1201, max: 1300, fixedValue: 64.29 },
+  { min: 1301, max: 1400, fixedValue: 68.15 },
+  { min: 1401, max: 1500, fixedValue: 72.24 },
+  { min: 1501, max: 1600, fixedValue: 75.85 },
+  { min: 1601, max: 1700, fixedValue: 79.64 },
+  { min: 1701, max: 1800, fixedValue: 83.63 },
+  { min: 1801, max: 1900, fixedValue: 87.81 },
+  { min: 1901, max: 2000, fixedValue: 92.2 },
+  { min: 2001, max: 2100, fixedValue: 95.85 },
+  { min: 2101, max: 2200, fixedValue: 98.45 },
+  { min: 2201, max: 2300, fixedValue: 100.86 },
+  { min: 2301, max: 2400, fixedValue: 103.55 },
+  { min: 2401, max: 2500, fixedValue: 106.09 },
+  { min: 2501, max: 2600, fixedValue: 109.37 },
+  { min: 2601, max: 2700, fixedValue: 117.48 },
+  { min: 2701, max: 2800, fixedValue: 126.44 },
+  { min: 2801, max: 2900, fixedValue: 135.73 },
+  { min: 2901, max: 3000, fixedValue: 139.25 },
+  { min: 3001, max: 3100, fixedValue: 142.68 },
+  { min: 3101, max: 3200, fixedValue: 146.35 },
+  { min: 3201, max: 3300, fixedValue: 149.96 },
+  { min: 3301, max: 3400, fixedValue: 153.8 },
+  { min: 3401, max: 3500, fixedValue: 157.6 },
+  { min: 3501, max: 3600, fixedValue: 161.62 },
+  { min: 3601, max: 3700, fixedValue: 165.61 },
+  { min: 3701, max: 3800, fixedValue: 169.82 },
+  { min: 3801, max: 3900, fixedValue: 174.01 },
+  { min: 3901, max: 4000, fixedValue: 178.42 },
+  { min: 4001, max: 4100, fixedValue: 182.83 },
+  { min: 4101, max: 4200, fixedValue: 187.45 },
+  { min: 4201, max: 4300, fixedValue: 192.08 },
+  { min: 4301, max: 4400, fixedValue: 195.99 },
+  { min: 4401, max: 4500, fixedValue: 199.87 },
+  { min: 4501, max: 4600, fixedValue: 203.93 },
+  { min: 4601, max: 4700, fixedValue: 207.97 },
+  { min: 4701, max: 4800, fixedValue: 213.2 },
+  { min: 4801, max: 4900, fixedValue: 218.46 },
+  { min: 4901, max: 5000, fixedValue: 222.88 },
+  { min: 5001, max: 5200, fixedValue: 229.54 },
+  { min: 5201, max: 5400, fixedValue: 238.73 },
+  { min: 5401, max: 5600, fixedValue: 248.28 },
+  { min: 5601, max: 5800, fixedValue: 258.21 },
+  { min: 5801, max: 6000, fixedValue: 268.54 },
+];
+
+const SAMPLE_ROUTES = {
+  "Porto Velho|Ariquemes": 201,
+  "Porto Velho|Ji-Paraná": 373,
+  "Porto Velho|Cacoal": 480,
+  "Porto Velho|Vilhena": 705,
+  "Ariquemes|Jaru": 91,
+  "Ji-Paraná|Cacoal": 114,
+  "Cacoal|Vilhena": 287,
+};
+
+function parseNumber(value) {
+  if (typeof value === "number") return value;
+  return Number(String(value).replace(/\./g, "").replace(",", ".")) || 0;
+}
+
+function money(value) {
+  return Number(value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function getBracket(distanceKm) {
+  return DISTANCE_BRACKETS.find((item) => distanceKm >= item.min && distanceKm <= item.max);
+}
+
+async function getDistanceFromGoogleMaps(origin, destination, apiKey) {
+  const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
+    },
+    body: JSON.stringify({
+      origin: { address: origin },
+      destination: { address: destination },
+      travelMode: "DRIVE",
+      routingPreference: "TRAFFIC_UNAWARE",
+      languageCode: "pt-BR",
+      units: "METRIC",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Falha ao consultar a Google Maps Platform.");
+  }
+
+  const data = await response.json();
+  const meters = data?.routes?.[0]?.distanceMeters;
+  if (!meters) throw new Error("Nenhuma rota encontrada para esta consulta.");
+  return Math.round(meters / 1000);
+}
+
+export default function CalculadoraICMSFrete() {
+  const [origin, setOrigin] = useState("Porto Velho");
+  const [destination, setDestination] = useState("Ariquemes");
+  const [weight, setWeight] = useState("1");
+  const [dieselPrice, setDieselPrice] = useState("6,50");
+  const [personType, setPersonType] = useState("cnpj");
+  const [taxRate, setTaxRate] = useState("0.12");
+  const [apiKey, setApiKey] = useState("");
+  const [distanceKm, setDistanceKm] = useState(0);
+  const [distanceSource, setDistanceSource] = useState("nenhuma");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  function handlePersonTypeChange(value) {
+    setPersonType(value);
+    setTaxRate(value === "cpf" ? "0.175" : "0.12");
+  }
+
+  const result = useMemo(() => {
+    const weightValue = parseNumber(weight);
+    const dieselValue = parseNumber(dieselPrice);
+    const rate = Number(taxRate);
+    const bracket = getBracket(distanceKm);
+    const fixedValue = bracket?.fixedValue || 0;
+    const base = fixedValue * weightValue * dieselValue;
+    const tax = base * rate;
+
+    return { weightValue, dieselValue, rate, bracket, fixedValue, base, tax };
+  }, [weight, dieselPrice, taxRate, distanceKm]);
+
+  async function calculate() {
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const routeKey = `${origin}|${destination}`;
+      let km = 0;
+      let source = "local";
+
+      if (apiKey.trim()) {
+        km = await getDistanceFromGoogleMaps(origin, destination, apiKey.trim());
+        source = "google";
+      } else if (SAMPLE_ROUTES[routeKey]) {
+        km = SAMPLE_ROUTES[routeKey];
+        source = "local";
+      } else {
+        throw new Error("Rota não encontrada na tabela de exemplo. Informe uma API Key do Google ou use uma rota cadastrada.");
+      }
+
+      setDistanceKm(km);
+      setDistanceSource(source);
+      setSuccess("Cálculo realizado com sucesso.");
+    } catch (err) {
+      setDistanceKm(0);
+      setDistanceSource("nenhuma");
+      setError(err.message || "Erro ao calcular.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copySummary() {
+    const text = [
+      `Origem: ${origin}`,
+      `Destino: ${destination}`,
+      `Distância: ${distanceKm} km`,
+      `Fonte da distância: ${distanceSource}`,
+      `Faixa: ${result.bracket ? `${result.bracket.min} a ${result.bracket.max} km` : "não encontrada"}`,
+      `Valor da faixa: ${money(result.fixedValue)}`,
+      `Peso \(toneladas\): ${result.weightValue}`,
+      `Tabela usada: carga refrigerada`,
+      `Diesel: ${money(result.dieselValue)}`,
+      `Tipo de cliente: ${personType === "cpf" ? "Pessoa física (CPF)" : "Pessoa jurídica (CNPJ)"}`,
+      `Alíquota: ${(result.rate * 100).toFixed(1)}%`,
+      `Base de cálculo: ${money(result.base)}`,
+      `Imposto: ${money(result.tax)}`,
+      "",
+      `Memória: ${result.fixedValue} x ${result.weightValue} x ${result.dieselValue} x ${(result.rate * 100).toFixed(1)}%`,
+    ].join("\n");
+
+    await navigator.clipboard.writeText(text);
+    setSuccess("Resumo copiado.");
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Calculator className="h-6 w-6" />
+              Calculadora de ICMS / GNRE de Frete
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Alert className="rounded-2xl">
+              <AlertDescription>
+                Esta é uma versão pronta para publicar. O cálculo usa a tabela de carga refrigerada. CNPJ aplica 12% e CPF aplica 17,5% automaticamente. Com API Key, a distância vem do Google. Sem API Key, o sistema usa a tabela local de exemplo.
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Origem</Label>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input className="pl-9" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Ex.: Porto Velho" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Destino</Label>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input className="pl-9" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Ex.: Ariquemes" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de cliente</Label>
+                <Select value={personType} onValueChange={handlePersonTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cnpj">Pessoa jurídica (CNPJ)</SelectItem>
+                    <SelectItem value="cpf">Pessoa física (CPF)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Peso (toneladas)</Label>
+                <div className="relative">
+                  <Weight className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input className="pl-9" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Ex.: 1" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Valor do diesel</Label>
+                <div className="relative">
+                  <Fuel className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input className="pl-9" value={dieselPrice} onChange={(e) => setDieselPrice(e.target.value)} placeholder="Ex.: 6,50" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Alíquota automática</Label>
+                <div className="relative">
+                  <Percent className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Select value={taxRate} disabled>
+                    <SelectTrigger className="pl-9 bg-slate-50">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.12">12%</SelectItem>
+                      <SelectItem value="0.175">17,5%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Google API Key</Label>
+                <div className="relative">
+                  <KeyRound className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input className="pl-9" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Cole aqui sua chave do Google" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button className="rounded-2xl" onClick={calculate} disabled={loading}>
+                {loading ? "Calculando..." : "Calcular"}
+              </Button>
+              <Button className="rounded-2xl" variant="outline" onClick={copySummary} disabled={!distanceKm}>
+                <Copy className="mr-2 h-4 w-4" />
+                Copiar resumo
+              </Button>
+            </div>
+
+            {error ? (
+              <Alert className="rounded-2xl border-red-200 bg-red-50 text-red-900">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            {success ? (
+              <Alert className="rounded-2xl border-emerald-200 bg-emerald-50 text-emerald-900">
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>Resultado</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Distância</span>
+              <strong>{distanceKm ? `${distanceKm} km` : "-"}</strong>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Fonte</span>
+              <Badge variant="secondary" className="rounded-xl">
+                {distanceSource === "google" ? "Google Maps" : distanceSource === "local" ? "Tabela local" : "-"}
+              </Badge>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Faixa</span>
+              <strong>
+                {result.bracket ? `${result.bracket.min} a ${result.bracket.max} km` : "Não encontrada"}
+              </strong>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Tipo de cliente</span>
+              <strong>{personType === "cpf" ? "CPF" : "CNPJ"}</strong>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Alíquota</span>
+              <strong>{(result.rate * 100).toFixed(1)}%</strong>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Valor da faixa</span>
+              <strong>{money(result.fixedValue)}</strong>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span>Base de cálculo</span>
+              <strong>{money(result.base)}</strong>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Memória do cálculo</div>
+              <div className="mb-2 text-xs text-slate-500">Tabela usada: carga refrigerada</div>
+              <div className="text-sm font-medium break-words">
+                {result.fixedValue || 0} × {result.weightValue || 0} × {result.dieselValue || 0} × {(result.rate * 100).toFixed(1)}%
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-900 p-4 text-white">
+              <div className="text-xs uppercase tracking-wide text-slate-300">Imposto final</div>
+              <div className="mt-2 text-3xl font-semibold">{money(result.tax)}</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

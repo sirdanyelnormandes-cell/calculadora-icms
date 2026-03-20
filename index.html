@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora ICMS / GNRE de Frete</title>
+  <title>Calculadora ICMS de Frete</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -180,18 +180,15 @@
     <div class="card">
       <h1>Calculadora de ICMS / GNRE de Frete</h1>
 
-        <strong>CNPJ = 12%</strong> e <strong>CPF = 17,5%</strong>.<br>
-      </div>
-
       <div class="grid">
         <div class="field">
           <label for="origem">Origem</label>
-          <input id="origem" type="text" value="Porto Velho" placeholder="Ex.: Porto Velho - RO" />
+          <input id="origem" type="text" value="Porto Velho - RO" placeholder="Ex.: Porto Velho - RO" />
         </div>
 
         <div class="field">
           <label for="destino">Destino</label>
-          <input id="destino" type="text" value="Ariquemes" placeholder="Ex.: Ariquemes - RO" />
+          <input id="destino" type="text" value="Ariquemes - RO" placeholder="Ex.: Ariquemes - RO" />
         </div>
 
         <div class="field">
@@ -221,12 +218,6 @@
           <label for="km">Distância (km)</label>
           <input id="km" type="number" step="1" readonly />
           <div class="small-note">Preenchido automaticamente pelo Google.</div>
-        </div>
-
-        <div class="field">
-          <label for="googleApiKey">Google API Key</label>
-          <input id="googleApiKey" type="password" placeholder="Cole aqui sua chave do Google" />
-          <div class="small-note">A chave precisa ter a Routes API ativada.</div>
         </div>
       </div>
 
@@ -273,7 +264,7 @@
 
       <div class="memory">
         <div><strong>Memória do cálculo</strong></div>
-        <div style="margin-top:8px;">Tabela usada: carga refrigerada</div>
+        <div style="margin-top:8px;"></div>
         <div id="rMemoria" style="margin-top:8px;">-</div>
       </div>
 
@@ -285,6 +276,9 @@
   </div>
 
   <script>
+    // COLE SUA CHAVE AQUI
+    const GOOGLE_API_KEY = "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc";
+
     const DISTANCE_BRACKETS = [
       { min: 1, max: 50, fixedValue: 16.25 },
       { min: 51, max: 100, fixedValue: 17.88 },
@@ -375,12 +369,12 @@
       box.innerHTML = texto;
     }
 
-    async function buscarDistanciaGoogle(origem, destino, apiKey) {
+    async function buscarDistanciaGoogle(origem, destino) {
       const resposta = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
+          "X-Goog-Api-Key": GOOGLE_API_KEY,
           "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
         },
         body: JSON.stringify({
@@ -414,7 +408,6 @@
       const peso = parseFloat(document.getElementById("peso").value);
       const diesel = parseFloat(document.getElementById("diesel").value);
       const tipo = document.getElementById("tipoPessoa").value;
-      const apiKey = document.getElementById("googleApiKey").value.trim();
       const aliquota = tipo === "cpf" ? 0.175 : 0.12;
 
       if (!origem || !destino || !peso || !diesel) {
@@ -422,15 +415,15 @@
         return;
       }
 
-      if (!apiKey) {
-        mostrarMensagem("Preencha a Google API Key.", "erro");
+      if (!GOOGLE_API_KEY || GOOGLE_API_KEY === "AIzaSyCFucCNqzUIYzgyffHJfTAs9-5a1gnu6Fc") {
+        mostrarMensagem("A chave da API do Google ainda não foi colocada no código.", "erro");
         return;
       }
 
       try {
         mostrarMensagem("Consultando distância no Google...", "sucesso");
 
-        const km = await buscarDistanciaGoogle(origem, destino, apiKey);
+        const km = await buscarDistanciaGoogle(origem, destino);
         document.getElementById("km").value = km;
 
         const bracket = getBracket(km);
@@ -462,6 +455,7 @@
     async function copiarResumo() {
       const texto = [
         "Calculadora ICMS / GNRE de Frete",
+        "Tabela usada: carga refrigerada",
         "Distância: " + document.getElementById("rDistancia").textContent,
         "Faixa: " + document.getElementById("rFaixa").textContent,
         "Tipo: " + document.getElementById("rTipo").textContent,
